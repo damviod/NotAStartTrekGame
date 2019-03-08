@@ -3,6 +3,8 @@
 #include "MillenniumFalcon.h"
 #include "Components/InputComponent.h"
 #include "Engine/Engine.h"
+#include "HUD/BaseFalconHUD.h"
+#include "Kismet/GameplayStatics.h"
 
 //#include "ConstructorHelpers.h"
 
@@ -63,12 +65,19 @@ void AMillenniumFalcon::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Power", this, &AMillenniumFalcon::Power);
 	PlayerInputComponent->BindAxis("Yaw", this, &AMillenniumFalcon::Yaw);
 	PlayerInputComponent->BindAxis("Pitch", this, &AMillenniumFalcon::Pitch);
+	PlayerInputComponent->BindAxis("LookUp", this, &AMillenniumFalcon::LookUp);
+	PlayerInputComponent->BindAxis("LookAround", this, &AMillenniumFalcon::LookAround);
+	PlayerInputComponent->BindAction("LockCam", EInputEvent::IE_Pressed, this, &AMillenniumFalcon::LockCam);
+	PlayerInputComponent->BindAction("LockCam", EInputEvent::IE_Released, this, &AMillenniumFalcon::UnlockCam);
+
 }
 
 void AMillenniumFalcon::PostInitProperties()
 {
 	Super::PostInitProperties();
 
+	initArmRotation = arm->GetRelativeTransform().Rotator();
+	initCamRotation = cam->GetRelativeTransform().Rotator();
 }
 
 void AMillenniumFalcon::Power(float axisValue)
@@ -94,5 +103,56 @@ void AMillenniumFalcon::Yaw(float axisValue)
 void AMillenniumFalcon::Pitch(float axisValue)
 {
 	currentPitch = FMath::FInterpTo(currentPitch, axisValue*pitchMax, GetWorld()->DeltaTimeSeconds, 10.f);
+}
+
+void AMillenniumFalcon::LookUp(float axisValue)
+{
+	if (IsCamLocked)
+	{
+		cam->AddRelativeRotation(FRotator(axisValue*lookupRate*GetWorld()->DeltaTimeSeconds, 0.f, 0.f));
+	}
+	else
+	{
+
+		FRotator newR = FMath::RInterpTo(cam->GetRelativeTransform().Rotator(), initCamRotation, GetWorld()->DeltaTimeSeconds, 10.f);
+		cam->SetRelativeRotation(newR);
+	}
+}
+void AMillenniumFalcon::LookAround(float axisValue)
+{
+	if (IsCamLocked)
+	{
+		arm->AddRelativeRotation(FRotator(0.f, axisValue*aroundRate*GetWorld()->DeltaTimeSeconds, 0.f));
+	}
+	else
+	{
+		
+		FRotator newR = FMath::RInterpTo(arm->GetRelativeTransform().Rotator(), initArmRotation, GetWorld()->DeltaTimeSeconds, 10.f);
+		arm->SetRelativeRotation(newR);
+	}
+}
+void AMillenniumFalcon::LockCam()
+{
+	IsCamLocked = true;
+
+
+	APlayerController *pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	ABaseFalconHUD * hud = (ABaseFalconHUD *) pc->GetHUD();
+	hud->SetFalconHUDVisibility(true);
+
+	/*
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString("Bloqueo"));
+		*/
+
+}
+
+void AMillenniumFalcon::UnlockCam()
+{
+	IsCamLocked = false;
+
+	APlayerController *pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	ABaseFalconHUD * hud = (ABaseFalconHUD *)pc->GetHUD();
+	hud->SetFalconHUDVisibility(false);
 }
 

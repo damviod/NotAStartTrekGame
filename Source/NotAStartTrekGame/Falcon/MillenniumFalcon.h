@@ -57,6 +57,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Transient, Category = "Falcon movement")
 	float currentRoll;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Transient, Category = "Aim")
+	bool IsCamLocked;
+
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Aim")
+	float aroundRate = 180;
+
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Aim")
+	float lookupRate = 180;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -73,5 +82,12 @@ public:
 	void Power(float);
 	void Yaw(float);
 	void Pitch(float);
+	void LookUp(float);
+	void LookAround(float);
+	void LockCam();
+	void UnlockCam();
 
+private:
+	FRotator initArmRotation;
+	FRotator initCamRotation;
 };

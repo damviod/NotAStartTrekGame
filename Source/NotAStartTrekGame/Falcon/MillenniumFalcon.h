@@ -66,6 +66,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Aim")
 	float lookupRate = 180;
 
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Aim")
+	float laserRange;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -79,6 +82,8 @@ public:
 
 	virtual void PostInitProperties() override;
 	
+private:
+
 	void Power(float);
 	void Yaw(float);
 	void Pitch(float);
@@ -86,8 +91,8 @@ public:
 	void LookAround(float);
 	void LockCam();
 	void UnlockCam();
+	void Aim();
 
-private:
 	FRotator initArmRotation;
 	FRotator initCamRotation;
 };

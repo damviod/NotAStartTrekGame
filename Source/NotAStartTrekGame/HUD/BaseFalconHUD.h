@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "Blueprint/UserWidget.h"
+#include "HUD/BaseFalconAimHUDWidget.h"
 #include "BaseFalconHUD.generated.h"
 
 /**
@@ -19,7 +20,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category="Falcon Huds")
 	TSubclassOf<UUserWidget> templateFalconHUDWidget;
 	
-	UFUNCTION(BlueprintImplementableEvent, Category="Falcon Huds")
+	UFUNCTION(BlueprintNativeEvent, Category="Falcon Huds")
 	void SetFalconHUDVisibility(bool IsVisible);
 	
+	virtual void BeginPlay() override;
+
+	UBaseFalconAimHUDWidget *ptrFalconHUDWidget;
+
+	void SetTargetDistanceText(float distance);
 };

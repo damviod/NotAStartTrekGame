@@ -37,7 +37,8 @@ AMillenniumFalcon::AMillenniumFalcon()
 void AMillenniumFalcon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	GetWorld()->DebugDrawTraceTag = "LINE_TRACE_AIM";
+
 }
 
 // Called every frame
@@ -110,6 +111,7 @@ void AMillenniumFalcon::LookUp(float axisValue)
 	if (IsCamLocked)
 	{
 		cam->AddRelativeRotation(FRotator(axisValue*lookupRate*GetWorld()->DeltaTimeSeconds, 0.f, 0.f));
+		Aim();
 	}
 	else
 	{
@@ -123,6 +125,7 @@ void AMillenniumFalcon::LookAround(float axisValue)
 	if (IsCamLocked)
 	{
 		arm->AddRelativeRotation(FRotator(0.f, axisValue*aroundRate*GetWorld()->DeltaTimeSeconds, 0.f));
+		Aim();
 	}
 	else
 	{
@@ -154,5 +157,29 @@ void AMillenniumFalcon::UnlockCam()
 	APlayerController *pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	ABaseFalconHUD * hud = (ABaseFalconHUD *)pc->GetHUD();
 	hud->SetFalconHUDVisibility(false);
+}
+
+void AMillenniumFalcon::Aim()
+{
+	FHitResult hit;
+	FVector start = cam->GetComponentLocation();
+	FVector end = start + cam->GetForwardVector()*laserRange;
+	FCollisionQueryParams qp = FCollisionQueryParams::DefaultQueryParam;
+	qp.AddIgnoredActor(this);
+
+#ifdef UE_BUILD_DEBUG
+
+	qp.TraceTag = "LINE_TRACE_AIM";
+
+#endif // UE_BUILD_DEBUG
+
+	bool isHit = GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Camera, qp);
+
+	if (isHit)
+	{
+		APlayerController *pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		ABaseFalconHUD * hud = (ABaseFalconHUD *)pc->GetHUD();
+		hud->SetTargetDistanceText(hit.Distance);
+	}
 }
 

@@ -23,8 +23,11 @@ AMillenniumFalcon::AMillenniumFalcon()
 
 	falconMesh = CreateDefaultSubobject<UStaticMeshComponent>("falconMesh");
 	//falconMesh->SetStaticMesh(Pepe.Object);
-
 	SetRootComponent(falconMesh);
+
+
+	falconCanion = CreateDefaultSubobject<UStaticMeshComponent>("falconCanion");
+	falconCanion->SetupAttachment(falconMesh);
 	arm = CreateDefaultSubobject<USpringArmComponent>("arm");
 	arm->SetupAttachment(falconMesh);
 	cam = CreateDefaultSubobject<UCameraComponent>("cam");
@@ -37,8 +40,10 @@ AMillenniumFalcon::AMillenniumFalcon()
 void AMillenniumFalcon::BeginPlay()
 {
 	Super::BeginPlay();
-	GetWorld()->DebugDrawTraceTag = "LINE_TRACE_AIM";
+	//GetWorld()->DebugDrawTraceTag = "LINE_TRACE_AIM";
 
+	//falconMesh->OnComponentBeginOverlap.AddDynamic(this, &AMillenniumFalcon::OnBeginOverlap);
+	falconMesh->OnComponentHit.AddDynamic(this, &AMillenniumFalcon::OnHit);
 }
 
 // Called every frame
@@ -55,7 +60,7 @@ void AMillenniumFalcon::Tick(float DeltaTime)
 	currentSpeed += currentPower * DeltaTime;
 	currentSpeed = FMath::Min(currentSpeed, speedMax);
 
-	falconMesh->AddLocalOffset(FVector(currentSpeed*DeltaTime, 0.f, 0.f));
+	falconMesh->AddLocalOffset(FVector(currentSpeed*DeltaTime, 0.f, 0.f), true);
 }
 
 // Called to bind functionality to input
@@ -70,6 +75,7 @@ void AMillenniumFalcon::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("LookAround", this, &AMillenniumFalcon::LookAround);
 	PlayerInputComponent->BindAction("LockCam", EInputEvent::IE_Pressed, this, &AMillenniumFalcon::LockCam);
 	PlayerInputComponent->BindAction("LockCam", EInputEvent::IE_Released, this, &AMillenniumFalcon::UnlockCam);
+	PlayerInputComponent->BindAction("Shoot", EInputEvent::IE_Pressed, this, &AMillenniumFalcon::Shoot);
 
 }
 
@@ -181,5 +187,30 @@ void AMillenniumFalcon::Aim()
 		ABaseFalconHUD * hud = (ABaseFalconHUD *)pc->GetHUD();
 		hud->SetTargetDistanceText(hit.Distance);
 	}
+}
+
+//void AMillenniumFalcon::OnBeginOverlap(UPrimitiveComponent* thisComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+//{
+//	//if (Cast<AsteriodsField>OtherActor)
+//	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, "OVERLAP");
+//
+//	UGameplayStatics::GetPlayerController(GetWorld(), 0)->ClientPlayCameraShake(falconCameraShakeTemplate, 1.f, ECameraAnimPlaySpace::CameraLocal);
+//}
+
+void AMillenniumFalcon::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, "HIIIIIT");
+	UGameplayStatics::GetPlayerController(GetWorld(), 0)->ClientPlayCameraShake(falconCameraShakeTemplate, 1.f, ECameraAnimPlaySpace::CameraLocal);
+
+	FVector fromOtherToFalcon = falconMesh->GetComponentLocation() - Hit.Location;
+
+	//Se separa del obstáculo
+	falconMesh->AddWorldOffset( Hit.Normal*2000.f, false);
+
+}
+
+void AMillenniumFalcon::Shoot()
+{
+
 }
 

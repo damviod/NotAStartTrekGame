@@ -21,6 +21,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite)
 	UStaticMeshComponent *falconMesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadwrite)
+	UStaticMeshComponent *falconCanion;
+
 	UPROPERTY(EditAnywhere, BlueprintReadonly)
 	USpringArmComponent *arm;
 
@@ -69,6 +72,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Aim")
 	float laserRange;
 
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Effects")
+	TSubclassOf<UCameraShake> falconCameraShakeTemplate;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -82,6 +88,10 @@ public:
 
 	virtual void PostInitProperties() override;
 	
+	//void OnBeginOverlap(UPrimitiveComponent* thisComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+
 private:
 
 	void Power(float);
@@ -92,6 +102,7 @@ private:
 	void LockCam();
 	void UnlockCam();
 	void Aim();
+	void Shoot();
 
 	FRotator initArmRotation;
 	FRotator initCamRotation;

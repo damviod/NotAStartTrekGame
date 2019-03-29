@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
 #include "FalconLaser.generated.h"
 
 UCLASS()
@@ -15,7 +16,18 @@ public:
 	// Sets default values for this actor's properties
 	AFalconLaser();
 
-	FVector initSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadonly)
+	USceneComponent *root;
+	UPROPERTY(EditAnywhere, BlueprintReadonly)
+	UStaticMeshComponent *beam1;
+	UPROPERTY(EditAnywhere, BlueprintReadonly)
+	UStaticMeshComponent *beam2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Laser")
+	float laserSpeed;
+
+	FVector falconSpeed;
+	FVector totalSpeed;
 
 protected:
 	// Called when the game starts or when spawned

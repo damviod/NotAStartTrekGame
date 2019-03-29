@@ -24,6 +24,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite)
 	UStaticMeshComponent *falconCanion;
 
+	UPROPERTY(EditAnywhere, BlueprintReadwrite)
+	USceneComponent *laserSpawnPoint;
+
 	UPROPERTY(EditAnywhere, BlueprintReadonly)
 	USpringArmComponent *arm;
 

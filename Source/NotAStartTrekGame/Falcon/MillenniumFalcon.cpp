@@ -5,6 +5,7 @@
 #include "Engine/Engine.h"
 #include "HUD/BaseFalconHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "FalconLaser//FalconLaser.h"
 
 //#include "ConstructorHelpers.h"
 
@@ -24,10 +25,11 @@ AMillenniumFalcon::AMillenniumFalcon()
 	falconMesh = CreateDefaultSubobject<UStaticMeshComponent>("falconMesh");
 	//falconMesh->SetStaticMesh(Pepe.Object);
 	SetRootComponent(falconMesh);
-
-
 	falconCanion = CreateDefaultSubobject<UStaticMeshComponent>("falconCanion");
 	falconCanion->SetupAttachment(falconMesh);
+	laserSpawnPoint = CreateDefaultSubobject<USceneComponent>("laserSpawnPoint");
+	laserSpawnPoint->SetupAttachment(falconCanion);
+
 	arm = CreateDefaultSubobject<USpringArmComponent>("arm");
 	arm->SetupAttachment(falconMesh);
 	cam = CreateDefaultSubobject<UCameraComponent>("cam");
@@ -211,6 +213,13 @@ void AMillenniumFalcon::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 
 void AMillenniumFalcon::Shoot()
 {
+	FActorSpawnParameters sp;
+	sp.Instigator = this;
+	sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	sp.Owner = this;
+	FTransform t = laserSpawnPoint->GetComponentTransform();
+	AFalconLaser *laser =GetWorld()->SpawnActor<AFalconLaser>(AFalconLaser::StaticClass(), t, sp);
+	laser->initSpeed = falconMesh->GetComponentVelocity();
 
 }
 

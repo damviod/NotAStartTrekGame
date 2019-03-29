@@ -5,6 +5,7 @@
 #include "Engine/Engine.h"
 #include "HUD/BaseFalconHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "FalconLaser//FalconLaser.h"
 
 //#include "ConstructorHelpers.h"
@@ -183,12 +184,22 @@ void AMillenniumFalcon::Aim()
 
 	bool isHit = GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Camera, qp);
 
+	FVector aimPoint;
 	if (isHit)
 	{
 		APlayerController *pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		ABaseFalconHUD * hud = (ABaseFalconHUD *)pc->GetHUD();
 		hud->SetTargetDistanceText(hit.Distance);
+		aimPoint = hit.Location;
 	}
+	else
+		aimPoint = end;
+
+	FRotator canionRotation = UKismetMathLibrary::FindLookAtRotation(falconMesh->GetComponentLocation(), aimPoint);
+	falconCanion->SetWorldRotation(canionRotation);
+	FRotator relRot = falconCanion->GetRelativeTransform().Rotator();
+	relRot.Roll = 0;
+	falconCanion->SetRelativeRotation(relRot);
 }
 
 //void AMillenniumFalcon::OnBeginOverlap(UPrimitiveComponent* thisComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)

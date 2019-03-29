@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
 #include "FalconLaser.generated.h"
 
 UCLASS()
@@ -14,6 +15,13 @@ class NOTASTARTTREKGAME_API AFalconLaser : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AFalconLaser();
+
+	UPROPERTY(EditAnywhere, BlueprintReadonly)
+	USceneComponent *root;
+	UPROPERTY(EditAnywhere, BlueprintReadonly)
+	UStaticMeshComponent *beam1;
+	UPROPERTY(EditAnywhere, BlueprintReadonly)
+	UStaticMeshComponent *beam2;
 
 	FVector initSpeed;
 

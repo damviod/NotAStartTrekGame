@@ -29,6 +29,9 @@ public:
 	FVector falconSpeed;
 	FVector totalSpeed;
 
+	FVector initSpeed;
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

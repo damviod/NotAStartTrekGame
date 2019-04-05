@@ -224,12 +224,19 @@ void AMillenniumFalcon::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 
 void AMillenniumFalcon::Shoot()
 {
+	if (!IsCamLocked)
+		return;
+
 	FActorSpawnParameters sp;
 	sp.Instigator = this;
 	sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	sp.Owner = this;
 	FTransform t = laserSpawnPoint->GetComponentTransform();
-	AFalconLaser *laser =GetWorld()->SpawnActor<AFalconLaser>(falconLaserTemplate, t, sp);
-	laser->falconSpeed = currentSpeed * falconMesh->GetForwardVector();
+	AFalconLaser *laser = GetWorld()->SpawnActorDeferred<AFalconLaser>(falconLaserTemplate, t, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (laser)
+	{
+		laser->falconSpeed = currentSpeed * falconMesh->GetForwardVector();
+		UGameplayStatics::FinishSpawningActor(laser, t);
+	}
 }
 

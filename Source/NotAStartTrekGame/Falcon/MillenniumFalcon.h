@@ -7,6 +7,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "FalconLaser/FalconLaser.h"
 #include "MillenniumFalcon.generated.h"
 
 UCLASS()
@@ -20,6 +21,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadwrite)
 	UStaticMeshComponent *falconMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadwrite)
+	UStaticMeshComponent *falconCanion;
+
+	UPROPERTY(EditAnywhere, BlueprintReadwrite)
+	USceneComponent *laserSpawnPoint;
 
 	UPROPERTY(EditAnywhere, BlueprintReadonly)
 	USpringArmComponent *arm;
@@ -69,6 +76,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Aim")
 	float laserRange;
 
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Aim")
+	TSubclassOf<AFalconLaser> falconLaserTemplate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Effects")
+	TSubclassOf<UCameraShake> falconCameraShakeTemplate;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -82,6 +95,12 @@ public:
 
 	virtual void PostInitProperties() override;
 	
+	
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+	//UFUNCTION()
+	//void OnBeginOverlap(UPrimitiveComponent* thisComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
 private:
 
 	void Power(float);
@@ -92,6 +111,7 @@ private:
 	void LockCam();
 	void UnlockCam();
 	void Aim();
+	void Shoot();
 
 	FRotator initArmRotation;
 	FRotator initCamRotation;

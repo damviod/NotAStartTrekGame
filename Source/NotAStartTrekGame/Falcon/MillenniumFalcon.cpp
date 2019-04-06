@@ -5,6 +5,8 @@
 #include "Engine/Engine.h"
 #include "HUD/BaseFalconHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "FalconLaser//FalconLaser.h"
 
 //#include "ConstructorHelpers.h"
 
@@ -23,8 +25,12 @@ AMillenniumFalcon::AMillenniumFalcon()
 
 	falconMesh = CreateDefaultSubobject<UStaticMeshComponent>("falconMesh");
 	//falconMesh->SetStaticMesh(Pepe.Object);
-
 	SetRootComponent(falconMesh);
+	falconCanion = CreateDefaultSubobject<UStaticMeshComponent>("falconCanion");
+	falconCanion->SetupAttachment(falconMesh);
+	laserSpawnPoint = CreateDefaultSubobject<USceneComponent>("laserSpawnPoint");
+	laserSpawnPoint->SetupAttachment(falconCanion);
+
 	arm = CreateDefaultSubobject<USpringArmComponent>("arm");
 	arm->SetupAttachment(falconMesh);
 	cam = CreateDefaultSubobject<UCameraComponent>("cam");
@@ -37,8 +43,10 @@ AMillenniumFalcon::AMillenniumFalcon()
 void AMillenniumFalcon::BeginPlay()
 {
 	Super::BeginPlay();
-	GetWorld()->DebugDrawTraceTag = "LINE_TRACE_AIM";
+	//GetWorld()->DebugDrawTraceTag = "LINE_TRACE_AIM";
 
+	//falconMesh->OnComponentBeginOverlap.AddDynamic(this, &AMillenniumFalcon::OnBeginOverlap);
+	falconMesh->OnComponentHit.AddDynamic(this, &AMillenniumFalcon::OnHit);
 }
 
 // Called every frame
@@ -55,7 +63,7 @@ void AMillenniumFalcon::Tick(float DeltaTime)
 	currentSpeed += currentPower * DeltaTime;
 	currentSpeed = FMath::Min(currentSpeed, speedMax);
 
-	falconMesh->AddLocalOffset(FVector(currentSpeed*DeltaTime, 0.f, 0.f));
+	falconMesh->AddLocalOffset(FVector(currentSpeed*DeltaTime, 0.f, 0.f), true);
 }
 
 // Called to bind functionality to input
@@ -70,6 +78,7 @@ void AMillenniumFalcon::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("LookAround", this, &AMillenniumFalcon::LookAround);
 	PlayerInputComponent->BindAction("LockCam", EInputEvent::IE_Pressed, this, &AMillenniumFalcon::LockCam);
 	PlayerInputComponent->BindAction("LockCam", EInputEvent::IE_Released, this, &AMillenniumFalcon::UnlockCam);
+	PlayerInputComponent->BindAction("Shoot", EInputEvent::IE_Pressed, this, &AMillenniumFalcon::Shoot);
 
 }
 
@@ -175,11 +184,59 @@ void AMillenniumFalcon::Aim()
 
 	bool isHit = GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Camera, qp);
 
+	FVector aimPoint;
 	if (isHit)
 	{
 		APlayerController *pc = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		ABaseFalconHUD * hud = (ABaseFalconHUD *)pc->GetHUD();
 		hud->SetTargetDistanceText(hit.Distance);
+		aimPoint = hit.Location;
+	}
+	else
+		aimPoint = end;
+
+	FRotator canionRotation = UKismetMathLibrary::FindLookAtRotation(falconMesh->GetComponentLocation(), aimPoint);
+	falconCanion->SetWorldRotation(canionRotation);
+	FRotator relRot = falconCanion->GetRelativeTransform().Rotator();
+	relRot.Roll = 0;
+	falconCanion->SetRelativeRotation(relRot);
+}
+
+//void AMillenniumFalcon::OnBeginOverlap(UPrimitiveComponent* thisComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+//{
+//	//if (Cast<AsteriodsField>OtherActor)
+//	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, "OVERLAP");
+//
+//	UGameplayStatics::GetPlayerController(GetWorld(), 0)->ClientPlayCameraShake(falconCameraShakeTemplate, 1.f, ECameraAnimPlaySpace::CameraLocal);
+//}
+
+void AMillenniumFalcon::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, "HIIIIIT");
+	UGameplayStatics::GetPlayerController(GetWorld(), 0)->ClientPlayCameraShake(falconCameraShakeTemplate, 1.f, ECameraAnimPlaySpace::CameraLocal);
+
+	FVector fromOtherToFalcon = falconMesh->GetComponentLocation() - Hit.Location;
+
+	//Se separa del obstáculo
+	falconMesh->AddWorldOffset( Hit.Normal*2000.f, false);
+
+}
+
+void AMillenniumFalcon::Shoot()
+{
+	if (!IsCamLocked)
+		return;
+
+	FActorSpawnParameters sp;
+	sp.Instigator = this;
+	sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	sp.Owner = this;
+	FTransform t = laserSpawnPoint->GetComponentTransform();
+	AFalconLaser *laser = GetWorld()->SpawnActorDeferred<AFalconLaser>(falconLaserTemplate, t, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (laser)
+	{
+		laser->falconSpeed = currentSpeed * falconMesh->GetForwardVector();
+		UGameplayStatics::FinishSpawningActor(laser, t);
 	}
 }
 

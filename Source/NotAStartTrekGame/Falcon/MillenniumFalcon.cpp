@@ -6,7 +6,8 @@
 #include "HUD/BaseFalconHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "FalconLaser//FalconLaser.h"
+#include "FalconLaser/FalconLaser.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 //#include "ConstructorHelpers.h"
 
@@ -88,6 +89,12 @@ void AMillenniumFalcon::PostInitProperties()
 
 	initArmRotation = arm->GetRelativeTransform().Rotator();
 	initCamRotation = cam->GetRelativeTransform().Rotator();
+
+	if (powerMaterialTemplate)
+	{
+		powerDynMaterial = UMaterialInstanceDynamic::Create(powerMaterialTemplate, this);
+		falconMesh->SetMaterial(5, powerDynMaterial);
+	}
 }
 
 void AMillenniumFalcon::Power(float axisValue)
@@ -97,6 +104,9 @@ void AMillenniumFalcon::Power(float axisValue)
 		currentSpeed -= linearDragRate * currentSpeed*GetWorld()->DeltaTimeSeconds;
 	}
 	currentPower = axisValue * powerMax;
+
+	currentFactorBrillo = FMath::Lerp(currentFactorBrillo, axisValue, GetWorld()->DeltaTimeSeconds/ timeToMaxPropulsionBrillo);
+	powerDynMaterial->SetScalarParameterValue("FactorBrillo", currentFactorBrillo);
 
 }
 

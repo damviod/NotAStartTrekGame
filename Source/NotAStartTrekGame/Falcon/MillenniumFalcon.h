@@ -82,6 +82,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Effects")
 	TSubclassOf<UCameraShake> falconCameraShakeTemplate;
 
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Effects")
+	UMaterialInterface* powerMaterialTemplate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Effects")
+	float timeToMaxPropulsionBrillo = 2.f;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -115,4 +121,7 @@ private:
 
 	FRotator initArmRotation;
 	FRotator initCamRotation;
+
+	UMaterialInstanceDynamic *powerDynMaterial;
+	float currentFactorBrillo = 0.f;
 };
